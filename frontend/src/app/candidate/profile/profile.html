@@ -1,0 +1,365 @@
+<div class="profile-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner">Loading profile...</div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <div class="error-message">{{ errorMessage }}</div>
+    <button class="retry-btn" (click)="loadProfile()">Retry</button>
+  </div>
+
+  <!-- Save Error Alert -->
+  <div *ngIf="errorMessage && (isEditMode || isAcademicEditMode)" class="save-error-alert">
+    <div class="error-message">{{ errorMessage }}</div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading && !errorMessage">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">Candidate <span class="highlight">Profile</span></h1>
+        <p class="page-description">Manage your candidate profile and personal information.</p>
+      </div>
+      <button class="edit-profile-btn" (click)="toggleEditMode()" *ngIf="activeTab === 'personal' && !isEditMode">
+        <span class="edit-icon">✏</span> Edit Profile
+      </button>
+      <div class="edit-actions" *ngIf="isEditMode">
+        <button class="cancel-btn" (click)="cancelEdit()">Cancel</button>
+        <button class="save-btn" (click)="saveProfile()">Save Changes</button>
+      </div>
+
+      <button class="edit-profile-btn" (click)="toggleAcademicEditMode()" *ngIf="activeTab === 'academic' && !isAcademicEditMode">
+        <span class="edit-icon">✏</span> Edit Academic
+      </button>
+      <div class="edit-actions" *ngIf="isAcademicEditMode">
+        <button class="cancel-btn" (click)="cancelAcademicEdit()">Cancel</button>
+        <button class="save-btn" (click)="saveAcademicInfo()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- Profile Header Card -->
+    <div class="profile-header-card">
+      <div class="profile-avatar-section">
+        <div class="profile-avatar-large">{{ profile.fullName ? (profile.fullName | slice:0:2 | uppercase) : 'NN' }}</div>
+        <div class="profile-header-info">
+          <h2 class="profile-name">{{ profile.fullName || 'New User' }}</h2>
+          <p class="profile-title">{{ profile.course || 'Student' }} • {{ profile.college || 'College' }}</p>
+          <div class="profile-meta">
+            <span class="meta-item">
+              <span class="icon">🎓</span>
+              {{ profile.college || 'Not specified' }}
+            </span>
+            <span class="meta-item">
+              <span class="icon">✉</span>
+              {{ profile.email || 'Not specified' }}
+            </span>
+            <span class="meta-item">
+              <span class="icon">📅</span>
+              Since 2025
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="profile-tabs">
+        <button
+          class="tab-button"
+          [class.active]="activeTab === 'personal'"
+          (click)="setActiveTab('personal')">
+          <span class="tab-icon">👤</span>
+          Personal Information
+        </button>
+        <button
+          class="tab-button"
+          [class.active]="activeTab === 'academic'"
+          (click)="setActiveTab('academic')">
+          <span class="tab-icon">🎓</span>
+          Academic Information
+        </button>
+
+        <button
+          class="tab-button"
+          [class.active]="activeTab === 'security'"
+          (click)="setActiveTab('security')">
+          <span class="tab-icon">🔒</span>
+          Security Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+
+      <!-- Personal Information Tab -->
+      <div class="tab-pane" *ngIf="activeTab === 'personal'">
+        <div class="info-section">
+          <div class="section-header">
+            <span class="section-icon">👤</span>
+            <h3 class="section-title">Personal Information</h3>
+          </div>
+
+          <div class="info-grid">
+            <!-- Full Name -->
+            <div class="info-item">
+              <label class="info-label">Full Name</label>
+              <input
+                *ngIf="isEditMode"
+                type="text"
+                class="info-input"
+                [(ngModel)]="editProfile.fullName">
+              <p *ngIf="!isEditMode" class="info-value">{{ profile.fullName }}</p>
+            </div>
+
+            <!-- Email -->
+            <div class="info-item">
+              <label class="info-label">Email</label>
+              <div class="info-value-with-icon">
+                <span class="value-icon">✉</span>
+                <input
+                  *ngIf="isEditMode"
+                  type="email"
+                  class="info-input"
+                  [(ngModel)]="editProfile.email">
+                <p *ngIf="!isEditMode" class="info-value">{{ profile.email }}</p>
+              </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="info-item">
+              <label class="info-label">Phone</label>
+              <div class="info-value-with-icon">
+                <span class="value-icon">📞</span>
+                <input
+                  *ngIf="isEditMode"
+                  type="tel"
+                  class="info-input"
+                  [(ngModel)]="editProfile.phoneNumber">
+                <p *ngIf="!isEditMode" class="info-value">{{ profile.phoneNumber }}</p>
+              </div>
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="info-item">
+              <label class="info-label">Date of Birth</label>
+              <input
+                *ngIf="isEditMode"
+                type="date"
+                class="info-input"
+                [(ngModel)]="editProfile.dateOfBirth">
+              <p *ngIf="!isEditMode" class="info-value">{{ profile.dateOfBirth ? (profile.dateOfBirth | date:'mediumDate') : 'Not specified' }}</p>
+            </div>
+
+            <!-- Address -->
+            <div class="info-item full-width">
+              <label class="info-label">Address</label>
+              <textarea
+                *ngIf="isEditMode"
+                class="info-input"
+                [(ngModel)]="editProfile.address"
+                rows="3"></textarea>
+              <p *ngIf="!isEditMode" class="info-value">{{ profile.address }}</p>
+            </div>
+
+            <!-- LinkedIn Profile -->
+            <div class="info-item">
+              <label class="info-label">LinkedIn Profile</label>
+              <input
+                *ngIf="isEditMode"
+                type="url"
+                class="info-input"
+                [(ngModel)]="editProfile.linkedInProfile">
+              <p *ngIf="!isEditMode" class="info-value">{{ profile.linkedInProfile }}</p>
+            </div>
+
+            <!-- Gender -->
+            <div class="info-item">
+              <label class="info-label">Gender</label>
+              <select
+                *ngIf="isEditMode"
+                class="info-input"
+                [(ngModel)]="editProfile.gender">
+                <option value="">Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+              <p *ngIf="!isEditMode" class="info-value">{{ profile.gender }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Academic Information Tab -->
+      <div class="tab-pane" *ngIf="activeTab === 'academic'">
+        <div class="info-section">
+          <div class="section-header">
+            <span class="section-icon">🎓</span>
+            <h3 class="section-title">Academic Information</h3>
+          </div>
+
+          <div class="info-grid">
+            <!-- College/University -->
+            <div class="info-item">
+              <label class="info-label">College/University</label>
+              <input
+                *ngIf="isAcademicEditMode"
+                type="text"
+                class="info-input"
+                [(ngModel)]="editProfile.college">
+              <p *ngIf="!isAcademicEditMode" class="info-value">{{ profile.college }}</p>
+            </div>
+
+            <!-- Course/Degree -->
+            <div class="info-item">
+              <label class="info-label">Course/Degree</label>
+              <input
+                *ngIf="isAcademicEditMode"
+                type="text"
+                class="info-input"
+                [(ngModel)]="editProfile.course">
+              <p *ngIf="!isAcademicEditMode" class="info-value">{{ profile.course }}</p>
+            </div>
+
+            <!-- Expected Graduation Year -->
+            <div class="info-item">
+              <label class="info-label">Expected Graduation Year</label>
+              <input
+                *ngIf="isAcademicEditMode"
+                type="number"
+                class="info-input"
+                [(ngModel)]="editProfile.graduationYear"
+                min="2020"
+                max="2030">
+              <p *ngIf="!isAcademicEditMode" class="info-value">{{ profile.graduationYear }}</p>
+            </div>
+
+            <!-- Current Semester -->
+            <div class="info-item">
+              <label class="info-label">Current Semester</label>
+              <select
+                *ngIf="isAcademicEditMode"
+                class="info-input"
+                [(ngModel)]="editProfile.currentSemester">
+                <option value="">Select semester</option>
+                <option value="1st Semester">1st Semester</option>
+                <option value="2nd Semester">2nd Semester</option>
+                <option value="3rd Semester">3rd Semester</option>
+                <option value="4th Semester">4th Semester</option>
+                <option value="5th Semester">5th Semester</option>
+                <option value="6th Semester">6th Semester</option>
+                <option value="7th Semester">7th Semester</option>
+                <option value="8th Semester">8th Semester</option>
+                <option value="Completed">Completed</option>
+              </select>
+              <p *ngIf="!isAcademicEditMode" class="info-value">{{ profile.currentSemester }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Security Settings Tab -->
+      <div class="tab-pane" *ngIf="activeTab === 'security'">
+        <div class="info-section">
+          <div class="section-header">
+            <span class="section-icon"></span>
+            <h3 class="section-title">Security Settings</h3>
+          </div>
+
+          <!-- Password Management -->
+          <div class="subsection">
+            <h4 class="subsection-title">Password Management</h4>
+            <div class="password-form">
+              <div class="password-input-group">
+                <label class="password-label">Current Password</label>
+                <div class="password-field">
+                  <input type="password" class="password-input"
+                         [(ngModel)]="passwordData.currentPassword"
+                         [type]="passwordVisibility.current ? 'text' : 'password'"
+                         placeholder="Enter your current password">
+                  <i class="bi {{ passwordVisibility.current ? 'bi-eye' : 'bi-eye-slash' }} password-toggle"
+                     (click)="togglePasswordVisibility('current')"></i>
+                </div>
+              </div>
+              <div class="password-input-group">
+                <label class="password-label">New Password</label>
+                <div class="password-field">
+                  <input type="password" class="password-input"
+                         [(ngModel)]="passwordData.newPassword"
+                         [type]="passwordVisibility.new ? 'text' : 'password'"
+                         placeholder="Enter your new password">
+                  <i class="bi {{ passwordVisibility.new ? 'bi-eye' : 'bi-eye-slash' }} password-toggle"
+                     (click)="togglePasswordVisibility('new')"></i>
+                </div>
+              </div>
+              <div class="password-input-group">
+                <label class="password-label">Confirm New Password</label>
+                <div class="password-field">
+                  <input type="password" class="password-input"
+                         [(ngModel)]="passwordData.confirmPassword"
+                         [type]="passwordVisibility.confirm ? 'text' : 'password'"
+                         placeholder="Confirm your new password">
+                  <i class="bi {{ passwordVisibility.confirm ? 'bi-eye' : 'bi-eye-slash' }} password-toggle"
+                     (click)="togglePasswordVisibility('confirm')"></i>
+                </div>
+              </div>
+              <div class="password-actions">
+                <button type="button" class="update-password-btn" (click)="updatePassword()">Update Password</button>
+              </div>
+            </div>
+          </div>
+
+
+
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Active Sessions Modal -->
+<div class="sessions-modal-overlay" *ngIf="showSessionsModal" (click)="closeSessionsModal()">
+  <div class="sessions-modal-content" (click)="$event.stopPropagation()">
+    <div class="sessions-modal-header">
+      <h2 class="sessions-modal-title">Active Login Sessions</h2>
+      <button class="sessions-modal-close-btn" (click)="closeSessionsModal()"><i class="bi bi-x"></i></button>
+    </div>
+    <p class="sessions-modal-subtitle">Manage devices that are currently logged into your account.</p>
+
+    <div class="sessions-list">
+      <div class="session-item" [class.current-session]="session.isCurrent" *ngFor="let session of activeSessions">
+        <div class="session-info">
+          <div class="session-device">
+            <i class="bi bi-laptop"></i>
+            <div>
+              <div class="device-name">{{ session.deviceName }}</div>
+              <div class="device-location">{{ session.location }}</div>
+            </div>
+          </div>
+          <div class="session-details">
+            <div class="session-time">Last active: {{ session.lastActive | date:'medium' }}</div>
+            <div class="session-ip">IP: {{ session.ipAddress }}</div>
+          </div>
+        </div>
+        <div class="session-actions">
+          <span class="current-badge" *ngIf="session.isCurrent">Current Session</span>
+          <button class="revoke-btn" *ngIf="!session.isCurrent" (click)="revokeSession(session)">Revoke</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sessions-modal-actions">
+      <button class="revoke-all-btn" (click)="revokeAllSessions()">Revoke All Other Sessions</button>
+      <button class="close-modal-btn" (click)="closeSessionsModal()">Close</button>
+    </div>
+  </div>
+</div>
